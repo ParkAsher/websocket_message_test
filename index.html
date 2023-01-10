@@ -1,0 +1,45 @@
+<!-- 메시지 폼 -->
+<form name="publish">
+    <input type="text" name="message" />
+    <input type="submit" value="send" />
+</form>
+
+<!-- 메시지 노출 div -->
+<div id="messages"></div>
+
+<script>
+    let url = 'ws://localhost:8080/ws';
+    let socket = new WebSocket(url);
+
+    // 폼에 있는 메시지 보내기
+    document.forms.publish.onsubmit = function () {
+        let outgoingMessage = this.message.value;
+        const obj = {
+            type: 'message',
+            params: {
+                value: outgoingMessage,
+            },
+        };
+
+        socket.send(JSON.stringify(obj));
+        return false;
+    };
+
+    // 들어오는 메시지 핸들링
+    socket.onmessage = function (e) {
+        let incommingMessage = e.data;
+        showMessage(incommingMessage);
+    };
+
+    socket.onclose = function (e) {
+        console.log(`closed ${e.code}`);
+    };
+
+    // div에 메시지 더하기
+    function showMessage(message) {
+        let messageElem = document.createElement('div');
+        const obj = JSON.parse(message);
+        messageElem.textContent = obj.params.value;
+        document.getElementById('messages').prepend(messageElem);
+    }
+</script>
